@@ -20,7 +20,7 @@ class AIDLService : Service() {
 
     private val mBinder = object: IAIDLService.Stub() {
         override fun basicTypes(anInt: Int, aLong: Long, aBoolean: Boolean, aFloat: Float, aDouble: Double, aString: String?) {
-            Log.d("여기",  "anInt : $anInt aLong : $aLong aBoolean : $aBoolean aFloat : $aFloat aDouble : $aDouble aString : $aString")
+            Log.d("BindService Callback", "CALLBACK || anInt : $anInt aLong : $aLong aBoolean : $aBoolean aFloat : $aFloat aDouble : $aDouble aString : $aString")
         }
         override fun registerCallback(callback: IAIDLCallback) {
             callbacks.add(callback)
@@ -43,8 +43,8 @@ class AIDLService : Service() {
                 val text = "Hello from Service!"
                 callbacks.forEach {
                     try {
-                        val a = it.onReceiveText(text)
-                        Log.d("여기", a.toString())
+                        val result = it.onReceiveText(text)
+                        Log.d("BindService Result", "RESULT : ${result.toString()}")
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -61,23 +61,23 @@ class AIDLService : Service() {
 
         val notificationChannel =
             NotificationChannel(
-                "ddddd","ddddd",
+                "Service Noti Id","AIDL Service",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "ddddd"
+                description = "This is AIDL Service"
                 enableVibration(false)
                 setShowBadge(false)
             }
 
         val notificationBuilder =
             NotificationCompat.Builder(
-                this, "ddddd"
+                this, "Service Noti Id"
             ).apply {
                 setAutoCancel(false)
                 setDefaults(Notification.DEFAULT_ALL)
                 setSmallIcon(R.drawable.ic_launcher_foreground)
-                setContentTitle("ddddd")
-                setContentText("ddddd")
+                setContentTitle("AIDL Service")
+                setContentText("This is AIDL Service")
             }
 
         notificationManager.createNotificationChannel(notificationChannel)
