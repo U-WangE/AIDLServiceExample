@@ -21,15 +21,15 @@ class AIDLClientService : Service() {
     override fun onBind(intent: Intent): IBinder? = null
 
     private val mConnection = object: ServiceConnection {
-        override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             mIAIDLService = IAIDLService.Stub.asInterface(binder)
 
             mIAIDLService?.basicTypes(0, 1L, true, 2f, 3.0, "4")
             mIAIDLService?.registerCallback(callback)
         }
 
-        override fun onServiceDisconnected(p0: ComponentName?) {
-            TODO("Not yet implemented")
+        override fun onServiceDisconnected(name: ComponentName?) {
+            Log.d("onServiceDisconnected", "AIDL SERVICE DISCONNECT : $name")
         }
     }
 
