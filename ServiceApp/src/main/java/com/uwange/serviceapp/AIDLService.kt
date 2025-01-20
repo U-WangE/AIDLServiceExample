@@ -44,7 +44,7 @@ class AIDLService : Service() {
                 callbacks.forEach {
                     try {
                         val result = it.onReceiveText(text)
-                        Log.d("BindService Result", "RESULT : ${result.toString()}")
+                        Log.d("BindService Result", "RESULT : ${result}")
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
