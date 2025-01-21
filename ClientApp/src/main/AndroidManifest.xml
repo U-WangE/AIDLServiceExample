@@ -5,8 +5,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <permission android:name="com.uwange.permission.AIDL_SERVICE"
-        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.uwange.permission.AIDL_SERVICE" />
 
     <queries>
         <package android:name="com.uwange.serviceapp" />
@@ -25,8 +24,7 @@
         <service
             android:name=".AIDLClientService"
             android:enabled="true"
-            android:exported="true"
-            android:permission="com.uwange.permission.AIDL_SERVICE" />
+            android:exported="true" />
 
         <activity
             android:name=".MainActivity"

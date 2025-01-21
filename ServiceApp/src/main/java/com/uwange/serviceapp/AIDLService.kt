@@ -6,10 +6,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.os.DeadObjectException
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.uwange.serviceapp.R
 import com.uwange.common.IAIDLCallback
 import com.uwange.common.IAIDLService
 import kotlinx.coroutines.CoroutineScope
@@ -18,17 +18,26 @@ import kotlinx.coroutines.launch
 
 class AIDLService : Service() {
 
+    private val callbacks = mutableListOf<IAIDLCallback>()
+
     private val mBinder = object: IAIDLService.Stub() {
         override fun basicTypes(anInt: Int, aLong: Long, aBoolean: Boolean, aFloat: Float, aDouble: Double, aString: String?) {
             Log.d("BindService Callback", "CALLBACK || anInt : $anInt aLong : $aLong aBoolean : $aBoolean aFloat : $aFloat aDouble : $aDouble aString : $aString")
         }
-        override fun registerCallback(callback: IAIDLCallback) {
-            callbacks.add(callback)
+        override fun registerCallback(callback: IAIDLCallback): Boolean {
+            return if (boundClientApp != null) {
+                callbacks.add(callback)
+                true
+            } else false
         }
     }
-    private val callbacks = mutableListOf<IAIDLCallback>()
 
-    override fun onBind(intent: Intent): IBinder = mBinder
+    private var boundClientApp : String? = null
+
+    override fun onBind(intent: Intent): IBinder {
+        boundClientApp = intent.extras?.getString("client_package")
+        return mBinder
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -44,16 +53,15 @@ class AIDLService : Service() {
                 callbacks.forEach {
                     try {
                         val result = it.onReceiveText(text)
-                        Log.d("BindService Result", "RESULT : ${result}")
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                        Log.d("BindService Result", "RESULT : $result")
+                    } catch (deadObjectException: DeadObjectException) {
+                        boundClientApp = null
+                        callbacks.remove(it)
                     }
                 }
             }
         }
     }
-
-
 
     @SuppressLint("ForegroundServiceType")
     private fun setNotificationChannel() {

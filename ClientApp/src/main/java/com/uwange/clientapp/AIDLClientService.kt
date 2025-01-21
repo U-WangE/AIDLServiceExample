@@ -13,25 +13,17 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.uwange.common.IAIDLCallback
 import com.uwange.common.IAIDLService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class AIDLClientService : Service() {
 
     private var mIAIDLService: IAIDLService? = null
 
-    override fun onBind(intent: Intent): IBinder? = null
-
-    private val mConnection = object: ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-            mIAIDLService = IAIDLService.Stub.asInterface(binder)
-
-            mIAIDLService?.basicTypes(0, 1L, true, 2f, 3.0, "4")
-            mIAIDLService?.registerCallback(callback)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            Log.d("onServiceDisconnected", "AIDL SERVICE DISCONNECT : $name")
-        }
-    }
+    private var reconnectJob: Job? = null
 
     private val callback = object: IAIDLCallback.Stub() {
         override fun onReceiveText(text: String?): Int {
@@ -39,6 +31,45 @@ class AIDLClientService : Service() {
             return 5
         }
     }
+
+    private val mConnection = object: ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
+            mIAIDLService = IAIDLService.Stub.asInterface(binder)
+
+            mIAIDLService?.basicTypes(0, 1L, true, 2f, 3.0, "4")
+            val result = mIAIDLService?.registerCallback(callback)
+
+            Log.i("onServiceConnected", "AIDL SERVICE CONNECT : $name, result : $result")
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            Log.i("onServiceDisconnected", "AIDL SERVICE DISCONNECT : $name")
+            mIAIDLService = null
+            Log.i("Reconnection", "Attempting to start reconnect job.")
+            startReconnect()
+        }
+    }
+    private fun startReconnect() {
+        if (reconnectJob?.isActive == true) {
+            Log.i("Reconnection", "Reconnect job is already active.")
+            return
+        }
+        Log.d("Reconnection", "Starting new reconnect job. $mIAIDLService")
+        reconnectJob = CoroutineScope(Dispatchers.IO).launch {
+            while (mIAIDLService == null) {
+                Log.i("startReconnect", "Reconnection attempt in progress...")
+                bindService()
+                delay(5000L)
+            }
+        }
+    }
+
+    private fun stopReconnect() {
+        reconnectJob?.cancel()
+        reconnectJob = null
+    }
+
+    override fun onBind(intent: Intent): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -48,14 +79,18 @@ class AIDLClientService : Service() {
     }
 
     private fun bindService() {
-        val intent = Intent("Action.AIDLService")
-        intent.setPackage("com.uwange.serviceapp")
+        val intent = Intent().apply {
+            action = "Action.AIDLService"
+            setPackage("com.uwange.serviceapp")
+            putExtra("client_package", packageName)
+        }
         val result = bindService(intent, mConnection, BIND_AUTO_CREATE)
-        Log.d("BindService Result", "RESULT : ${result.toString()}")
+        Log.d("BindService Result", "RESULT : $result")
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        stopReconnect()
         unbindService(mConnection)
     }
 

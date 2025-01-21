@@ -17,8 +17,28 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
+    signingConfigs {
+        debug {
+            storeFile file("../AIDLSignKey.jks")
+            storePassword '123456'
+            keyAlias 'aidl'
+            keyPassword '123456'
+        }
         release {
+            storeFile file("../AIDLSignKey.jks")
+            storePassword '123456'
+            keyAlias 'aidl'
+            keyPassword '123456'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+        }
+        release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
