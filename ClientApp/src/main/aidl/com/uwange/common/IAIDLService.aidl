@@ -6,5 +6,5 @@ import com.uwange.common.IAIDLCallback;
 
 interface IAIDLService {
     void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat, double aDouble, String aString);
-    void registerCallback(IAIDLCallback callback);
+    boolean registerCallback(IAIDLCallback callback);
 }

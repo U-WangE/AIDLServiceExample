@@ -4,7 +4,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <uses-permission android:name="com.uwange.permission.AIDL_SERVICE" />
+    <permission android:name="com.uwange.permission.AIDL_SERVICE"
+        android:protectionLevel="signature"/>
     
     <application
         android:allowBackup="true"
@@ -15,7 +16,8 @@
         android:theme="@style/Theme.AIDLServiceExample">
         <service
             android:name="com.uwange.serviceapp.AIDLService"
-            android:exported="true">
+            android:exported="true"
+            android:permission="com.uwange.permission.AIDL_SERVICE" >
             <intent-filter>
                 <action android:name="Action.AIDLService" />
             </intent-filter>
